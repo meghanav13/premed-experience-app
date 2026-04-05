@@ -1,98 +1,160 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
-
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+import { ProgressBar } from "@/components/ProgressBar";
+import { Tag } from "@/components/Tag";
+import { useExperiences } from "@/hooks/useExperiences";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 
 export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+  const { experiences } = useExperiences();
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+  // simple aggregation for demo
+  const clinical = experiences
+    .filter((e) => e.type === "Clinical")
+    .reduce((sum, e) => sum + e.hours, 0);
+
+  const shadowing = experiences
+    .filter((e) => e.type === "Shadowing")
+    .reduce((sum, e) => sum + e.hours, 0);
+
+  const research = experiences
+    .filter((e) => e.type === "Research")
+    .reduce((sum, e) => sum + e.hours, 0);
+
+  const highlights = experiences.filter((e) => e.isMeaningful);
+
+  return (
+    <ScrollView style={styles.container}>
+      {/* HEADER */}
+      <Text style={styles.header}>My Journey</Text>
+
+      {/* PROGRESS CARD */}
+      <View style={styles.card}>
+        <Text style={styles.sectionTitle}>THIS MONTH</Text>
+
+        <View style={styles.row}>
+          <Text>Clinical</Text>
+          <Text>{clinical} hrs</Text>
+        </View>
+        <ProgressBar progress={Math.min(clinical / 150, 1)} />
+
+        <View style={styles.row}>
+          <Text>Shadowing</Text>
+          <Text>{shadowing} hrs</Text>
+        </View>
+        <ProgressBar progress={Math.min(shadowing / 150, 1)} />
+
+        <View style={styles.row}>
+          <Text>Research</Text>
+          <Text>{research} hrs</Text>
+        </View>
+        <ProgressBar progress={Math.min(research / 150, 1)} />
+      </View>
+
+      {/* ALERT CARD */}
+      <View style={styles.alertCard}>
+        <Text style={styles.alertTitle}>⚠️ ATTENTION NEEDED</Text>
+        <Text style={styles.alertText}>Personal Statement Draft #1</Text>
+        <Text style={styles.alertSub}>Tap to review</Text>
+      </View>
+
+      {/* HIGHLIGHTS */}
+      <View style={styles.card}>
+        <Text style={styles.sectionTitle}>⭐ Highlights</Text>
+
+        {highlights.map((exp) => (
+          <View key={exp.id} style={styles.highlightItem}>
+            <Text style={styles.highlightTitle}>• {exp.title}</Text>
+
+            <View style={styles.tagsRow}>
+              {exp.tags.map((tag, i) => (
+                <Tag key={i} label={tag} />
+              ))}
+            </View>
+          </View>
+        ))}
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  container: {
+    flex: 1,
+    backgroundColor: "#F8F9FB",
+    paddingTop: 60,
+    paddingHorizontal: 16,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+
+  header: {
+    fontSize: 28,
+    fontWeight: "700",
+    marginBottom: 16,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+
+  card: {
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 16,
+
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+
+    elevation: 3,
+  },
+
+  sectionTitle: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#6B7280",
+    marginBottom: 10,
+  },
+
+  row: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 8,
+  },
+
+  alertCard: {
+    borderWidth: 1.5,
+    borderColor: "#D32F2F",
+    backgroundColor: "#FDECEC",
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 16,
+  },
+
+  alertTitle: {
+    color: "#B71C1C",
+    fontWeight: "700",
+    marginBottom: 6,
+  },
+
+  alertText: {
+    fontWeight: "600",
+  },
+
+  alertSub: {
+    color: "#6B7280",
+    fontSize: 12,
+    marginTop: 4,
+  },
+
+  highlightItem: {
+    marginTop: 10,
+  },
+
+  highlightTitle: {
+    fontSize: 14,
+    fontWeight: "500",
+  },
+
+  tagsRow: {
+    flexDirection: "row",
+    gap: 6,
+    marginTop: 6,
+    flexWrap: "wrap",
   },
 });
