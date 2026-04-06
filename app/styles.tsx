@@ -1,5 +1,13 @@
 import { ProgressBar } from "@/components/ProgressBar";
 import { Tag } from "@/components/Tag";
+import { COLORS, FONTS } from "@/constants/theme";
+import {
+    BookOpenIcon,
+    HeartIcon,
+    PulseIcon,
+    StarIcon,
+    UserIcon,
+} from "phosphor-react-native";
 import { StyleSheet, Text, View } from "react-native";
 
 export default function StylesScreen() {
@@ -10,24 +18,82 @@ export default function StylesScreen() {
       {/* COLORS */}
       <Text style={styles.section}>Colors</Text>
       <View style={styles.row}>
-        <View style={[styles.colorBox, { backgroundColor: "#2E7D32" }]} />
-        <View style={[styles.colorBox, { backgroundColor: "#F8F9FB" }]} />
-        <View style={[styles.colorBox, { backgroundColor: "#E5E7EB" }]} />
+        <View style={styles.colorItem}>
+          <View style={[styles.colorBox, { backgroundColor: COLORS.green }]} />
+          <Text style={styles.colorLabel}>Green</Text>
+        </View>
+
+        <View style={styles.colorItem}>
+          <View
+            style={[
+              styles.colorBox,
+              {
+                backgroundColor: COLORS.cream,
+                borderWidth: 1,
+                borderColor: "#E5E5E5",
+              },
+            ]}
+          />
+          <Text style={styles.colorLabel}>Cream</Text>
+        </View>
+
+        <View style={styles.colorItem}>
+          <View style={[styles.colorBox, { backgroundColor: COLORS.amber }]} />
+          <Text style={styles.colorLabel}>Amber</Text>
+        </View>
       </View>
 
       {/* TYPOGRAPHY */}
       <Text style={styles.section}>Typography</Text>
-      <Text style={styles.title}>Header Text</Text>
+
+      <Text style={styles.typographyLabel}>DM Serif Display</Text>
+      <Text style={styles.title}>My Journey Header</Text>
+
+      <Text style={styles.typographyLabel}>DM Sans Regular</Text>
       <Text style={styles.body}>Body Text Example</Text>
+
+      <Text style={styles.typographyLabel}>DM Sans Bold</Text>
+      <Text style={styles.bold}>Important Labels</Text>
+      {/* ICONS */}
+      <Text style={styles.section}>Icons</Text>
+
+      <Text style={styles.componentLabel}>Phosphor Icons</Text>
+
+      <View style={styles.iconRow}>
+        <View style={styles.iconItem}>
+          <StarIcon size={28} color={COLORS.amber} weight="fill" />
+          <Text style={styles.iconLabel}>Star</Text>
+        </View>
+
+        <View style={styles.iconItem}>
+          <HeartIcon size={28} color={COLORS.green} weight="fill" />
+          <Text style={styles.iconLabel}>Heart</Text>
+        </View>
+
+        <View style={styles.iconItem}>
+          <PulseIcon size={28} color={COLORS.textPrimary} />
+          <Text style={styles.iconLabel}>Pulse</Text>
+        </View>
+
+        <View style={styles.iconItem}>
+          <UserIcon size={28} color={COLORS.textPrimary} />
+          <Text style={styles.iconLabel}>User</Text>
+        </View>
+
+        <View style={styles.iconItem}>
+          <BookOpenIcon size={28} color={COLORS.textPrimary} />
+          <Text style={styles.iconLabel}>Study</Text>
+        </View>
+      </View>
 
       {/* COMPONENTS */}
       <Text style={styles.section}>Components</Text>
 
-      <Text style={{ marginBottom: 6 }}>ProgressBar</Text>
+      <Text style={styles.componentLabel}>Progress Bar</Text>
       <ProgressBar progress={0.6} />
 
-      <Text style={{ marginTop: 12 }}>Tags</Text>
-      <View style={{ flexDirection: "row", gap: 6, marginTop: 6 }}>
+      <Text style={[styles.componentLabel, { marginTop: 16 }]}>Tags</Text>
+      <View style={styles.tagRow}>
         <Tag label="Clinical" />
         <Tag label="Research" />
         <Tag label="Leadership" />
@@ -35,40 +101,108 @@ export default function StylesScreen() {
     </View>
   );
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
     paddingTop: 60,
-    backgroundColor: "#F8F9FB",
+    backgroundColor: "#FFFFFF", // ✅ FIXED
   },
+
   header: {
-    fontSize: 26,
-    fontWeight: "700",
-    marginBottom: 20,
+    fontSize: 30,
+    fontFamily: FONTS.serif,
+    color: COLORS.green,
+    marginBottom: 24,
   },
+
   section: {
-    marginTop: 12,
-    marginBottom: 6,
-    fontWeight: "600",
-    color: "#6B7280",
+    marginTop: 18,
+    marginBottom: 10,
+    fontFamily: FONTS.sansBold,
+    fontSize: 13,
+    color: COLORS.textSecondary,
+    letterSpacing: 0.5,
   },
+
   row: {
     flexDirection: "row",
-    gap: 10,
+    gap: 16,
   },
+
+  colorItem: {
+    alignItems: "center",
+  },
+
   colorBox: {
-    width: 50,
-    height: 50,
-    borderRadius: 8,
+    width: 70,
+    height: 70,
+    borderRadius: 14,
   },
+
+  colorLabel: {
+    marginTop: 6,
+    fontSize: 12,
+    fontFamily: FONTS.sans,
+    color: COLORS.textSecondary,
+  },
+
+  typographyLabel: {
+    marginTop: 10,
+    fontSize: 12,
+    fontFamily: FONTS.sans,
+    color: COLORS.textSecondary,
+  },
+
   title: {
-    fontSize: 20,
-    fontWeight: "700",
+    fontSize: 24,
+    fontFamily: FONTS.serif,
+    color: COLORS.textPrimary,
+    marginTop: 4,
   },
+
   body: {
     fontSize: 14,
+    fontFamily: FONTS.sans,
     marginTop: 4,
+    color: COLORS.textPrimary,
+  },
+
+  bold: {
+    fontSize: 14,
+    fontFamily: FONTS.sansBold,
+    marginTop: 4,
+    color: COLORS.textPrimary,
+  },
+
+  componentLabel: {
+    fontSize: 13,
+    fontFamily: FONTS.sans,
+    color: COLORS.textSecondary,
+    marginBottom: 6,
+  },
+
+  tagRow: {
+    flexDirection: "row",
+    gap: 8,
+    marginTop: 6,
+  },
+
+  iconRow: {
+    flexDirection: "row",
+    gap: 20,
+    marginTop: 10,
+    flexWrap: "wrap",
+  },
+
+  iconItem: {
+    alignItems: "center",
+  },
+
+  iconLabel: {
+    marginTop: 4,
+    fontSize: 11,
+    fontFamily: FONTS.sans,
+    color: COLORS.textSecondary,
   },
 });

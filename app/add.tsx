@@ -1,7 +1,15 @@
-import { useExperiences } from "@/hooks/useExperiences";
+import { COLORS, FONTS } from "@/constants/theme";
+import { useExperiences } from "@/context/ExperiencesContext";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import {
+    Pressable,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    View,
+} from "react-native";
 
 export default function AddExperience() {
   const router = useRouter();
@@ -37,95 +45,149 @@ export default function AddExperience() {
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       <Text style={styles.header}>Quick Log</Text>
 
-      <TextInput
-        placeholder="Title"
-        value={title}
-        onChangeText={setTitle}
-        style={styles.input}
-      />
+      {/* TITLE */}
+      <View style={styles.field}>
+        <Text style={styles.label}>Title</Text>
+        <TextInput
+          placeholder="e.g. Hospital Volunteering"
+          value={title}
+          onChangeText={setTitle}
+          style={styles.input}
+        />
+      </View>
 
-      <TextInput
-        placeholder="Hours"
-        value={hours}
-        onChangeText={setHours}
-        keyboardType="numeric"
-        style={styles.input}
-      />
+      {/* HOURS */}
+      <View style={styles.field}>
+        <Text style={styles.label}>Hours</Text>
+        <TextInput
+          placeholder="e.g. 4"
+          value={hours}
+          onChangeText={setHours}
+          keyboardType="numeric"
+          style={styles.input}
+        />
+      </View>
 
-      <TextInput
-        placeholder="Type (Clinical, Research...)"
-        value={type}
-        onChangeText={setType}
-        style={styles.input}
-      />
+      {/* TYPE */}
+      <View style={styles.field}>
+        <Text style={styles.label}>Type</Text>
+        <TextInput
+          placeholder="Clinical, Research..."
+          value={type}
+          onChangeText={setType}
+          style={styles.input}
+        />
+      </View>
 
-      <TextInput
-        placeholder="Location"
-        value={location}
-        onChangeText={setLocation}
-        style={styles.input}
-      />
+      {/* LOCATION */}
+      <View style={styles.field}>
+        <Text style={styles.label}>Location</Text>
+        <TextInput
+          placeholder="Where was this?"
+          value={location}
+          onChangeText={setLocation}
+          style={styles.input}
+        />
+      </View>
 
-      <TextInput
-        placeholder="Supervisor"
-        value={supervisor}
-        onChangeText={setSupervisor}
-        style={styles.input}
-      />
+      {/* SUPERVISOR */}
+      <View style={styles.field}>
+        <Text style={styles.label}>Supervisor</Text>
+        <TextInput
+          placeholder="Doctor / Manager name"
+          value={supervisor}
+          onChangeText={setSupervisor}
+          style={styles.input}
+        />
+      </View>
 
-      <TextInput
-        placeholder="What did you learn?"
-        value={reflection1}
-        onChangeText={setReflection1}
-        style={styles.input}
-      />
+      {/* REFLECTIONS */}
+      <View style={styles.field}>
+        <Text style={styles.label}>What did you learn?</Text>
+        <TextInput
+          placeholder="Key takeaway..."
+          value={reflection1}
+          onChangeText={setReflection1}
+          style={[styles.input, styles.multiline]}
+          multiline
+        />
+      </View>
 
-      <TextInput
-        placeholder="Why was this important?"
-        value={reflection2}
-        onChangeText={setReflection2}
-        style={styles.input}
-      />
+      <View style={styles.field}>
+        <Text style={styles.label}>Why was this important?</Text>
+        <TextInput
+          placeholder="Impact..."
+          value={reflection2}
+          onChangeText={setReflection2}
+          style={[styles.input, styles.multiline]}
+          multiline
+        />
+      </View>
 
+      {/* BUTTON */}
       <Pressable style={styles.button} onPress={handleSave}>
         <Text style={styles.buttonText}>Save Experience</Text>
       </Pressable>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F8F9FB",
+    backgroundColor: COLORS.cream,
     padding: 20,
     paddingTop: 60,
   },
+
   header: {
-    fontSize: 26,
-    fontWeight: "700",
+    fontSize: 30,
+    fontFamily: FONTS.serif,
+    color: COLORS.green,
     marginBottom: 20,
   },
+
+  field: {
+    marginBottom: 16,
+  },
+
+  label: {
+    fontSize: 13,
+    fontFamily: FONTS.sansBold,
+    color: COLORS.textSecondary,
+    marginBottom: 6,
+  },
+
   input: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: COLORS.white,
     padding: 14,
-    borderRadius: 12,
-    marginBottom: 12,
+    borderRadius: 14,
     borderWidth: 1,
-    borderColor: "#E5E7EB",
+    borderColor: "#E5E5E5",
+    fontFamily: FONTS.sans,
+    fontSize: 14,
   },
+
+  multiline: {
+    minHeight: 80,
+    textAlignVertical: "top",
+  },
+
   button: {
-    backgroundColor: "#2E7D32",
-    padding: 14,
-    borderRadius: 12,
+    backgroundColor: COLORS.green,
+    padding: 16,
+    borderRadius: 16,
     marginTop: 10,
+    marginBottom: 30,
   },
+
   buttonText: {
-    color: "#FFFFFF",
+    color: COLORS.white,
     textAlign: "center",
-    fontWeight: "600",
+    fontFamily: FONTS.sansBold,
+    fontSize: 15,
   },
 });

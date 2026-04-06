@@ -10,7 +10,7 @@ export function useExperiences() {
   const [experiences, setExperiences] = useState<Experience[]>(initialData);
   const [filter, setFilter] = useState<ExperienceType | "All">("All");
 
-  // 🔄 load from storage on app start
+  // load from storage on app start
   useEffect(() => {
     const loadExperiences = async () => {
       try {
@@ -26,10 +26,10 @@ export function useExperiences() {
     loadExperiences();
   }, []);
 
-  // 💾 save whenever experiences change
   useEffect(() => {
     const saveExperiences = async () => {
       try {
+        console.log("SAVING:", experiences);
         await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(experiences));
       } catch (e) {
         console.log("Failed to save experiences", e);
@@ -53,7 +53,7 @@ export function useExperiences() {
     );
   };
 
-  // 🔍 filter logic
+  // filter logic
   const filteredExperiences =
     filter === "All"
       ? experiences

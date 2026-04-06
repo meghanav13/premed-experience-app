@@ -16,29 +16,48 @@ export default function AIScreen() {
     setResult("");
 
     try {
+      const context = `
+Prompt: Most meaningful experience
+
+Selected Experiences:
+1. Volunteered at a free clinic assisting patients
+2. Shadowed a physician in a hospital setting
+`;
+
       const response = await fetch(
-        "https://api.openai.com/v1/chat/completions",
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=API-KEY",
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer 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`,
           },
           body: JSON.stringify({
-            model: "gpt-4o-mini",
-            messages: [
+            contents: [
               {
                 role: "user",
-                content:
-                  "Write a short personal statement paragraph about a meaningful clinical experience volunteering at a free clinic.",
+                parts: [
+                  {
+                    text: `Write a strong personal statement paragraph based on the following:\n${context}`,
+                  },
+                ],
               },
             ],
           }),
         },
       );
 
+      if (!response.ok) {
+        const err = await response.text();
+        console.log("API ERROR:", err);
+        throw new Error("Request failed");
+      }
+
       const data = await response.json();
-      const text = data.choices?.[0]?.message?.content || "No response";
+
+      const text =
+        data?.candidates?.[0]?.content?.parts
+          ?.map((p: any) => p.text)
+          .join("") || "No response";
 
       setResult(text);
     } catch (error) {

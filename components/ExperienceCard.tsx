@@ -1,3 +1,4 @@
+import { COLORS, FONTS } from "@/constants/theme";
 import { Experience } from "@/types/experience";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Tag } from "./Tag";
@@ -60,16 +61,15 @@ export default function ExperienceCard({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 16,
+    backgroundColor: COLORS.white,
+    borderRadius: 18,
     padding: 16,
-    marginBottom: 12,
+    marginBottom: 14,
 
     shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 },
-
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
     elevation: 3,
   },
 
@@ -87,9 +87,9 @@ const styles = StyleSheet.create({
   },
 
   title: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#1E1E1E",
+    fontSize: 17,
+    fontFamily: FONTS.sansBold,
+    color: COLORS.textPrimary,
   },
 
   star: {
@@ -97,7 +97,7 @@ const styles = StyleSheet.create({
   },
 
   hoursBubble: {
-    backgroundColor: "#E6F4EA",
+    backgroundColor: "#EDF7F1",
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
@@ -105,14 +105,15 @@ const styles = StyleSheet.create({
 
   hoursText: {
     fontSize: 12,
-    fontWeight: "500",
-    color: "#2E7D32",
+    fontFamily: FONTS.sansBold,
+    color: COLORS.green,
   },
 
   subtitle: {
     marginTop: 6,
     fontSize: 13,
-    color: "#6B7280",
+    fontFamily: FONTS.sans,
+    color: COLORS.textSecondary,
   },
 
   tagsRow: {

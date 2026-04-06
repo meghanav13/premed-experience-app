@@ -1,6 +1,7 @@
 import ExperienceCard from "@/components/ExperienceCard";
-import { useExperiences } from "@/hooks/useExperiences";
-import { ExperienceType } from "@/types/experience";
+import { COLORS, FONTS } from "@/constants/theme";
+import { useExperiences } from "@/context/ExperiencesContext";
+import { Experience, ExperienceType } from "@/types/experience";
 import { useRouter } from "expo-router";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
@@ -15,11 +16,14 @@ const filters: (ExperienceType | "All")[] = [
 export default function TimelineScreen() {
   const router = useRouter();
 
-  const { experiences, filter, setFilter, toggleMeaningful } = useExperiences();
+  const { experiences, allExperiences, filter, setFilter, toggleMeaningful } =
+    useExperiences();
+
+  const data = filter === "All" ? allExperiences : experiences;
 
   return (
-    <View style={styles.container}>
-      {/* HEADER ROW */}
+    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+      {/* HEADER */}
       <View style={styles.headerRow}>
         <Text style={styles.header}>Timeline</Text>
 
@@ -35,37 +39,39 @@ export default function TimelineScreen() {
         style={styles.filterRow}
       >
         {filters.map((f) => (
-          <Text
+          <Pressable
             key={f}
-            style={[styles.chip, filter === f && styles.activeChip]}
             onPress={() => setFilter(f)}
+            style={[styles.chip, filter === f && styles.activeChip]}
           >
-            {f}
-          </Text>
+            <Text
+              style={[styles.chipText, filter === f && styles.activeChipText]}
+            >
+              {f}
+            </Text>
+          </Pressable>
         ))}
       </ScrollView>
 
       {/* EXPERIENCE LIST */}
-      <ScrollView showsVerticalScrollIndicator={false}>
-        {experiences.map((exp) => (
+      <View>
+        {data.map((exp: Experience) => (
           <ExperienceCard
             key={exp.id}
             experience={exp}
-            onPress={() => {
-              console.log("Pressed:", exp.title);
-            }}
+            onPress={() => console.log("Pressed:", exp.title)}
             onToggleStar={() => toggleMeaningful(exp.id)}
           />
         ))}
-      </ScrollView>
-    </View>
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F8F9FB",
+    backgroundColor: COLORS.cream,
     paddingTop: 60,
     paddingHorizontal: 16,
   },
@@ -78,39 +84,46 @@ const styles = StyleSheet.create({
   },
 
   header: {
-    fontSize: 28,
-    fontWeight: "700",
-    color: "#111",
+    fontSize: 30,
+    fontFamily: FONTS.serif,
+    color: COLORS.green,
   },
 
   addButton: {
-    backgroundColor: "#2E7D32",
+    backgroundColor: COLORS.green,
     paddingVertical: 8,
-    paddingHorizontal: 14,
-    borderRadius: 16,
+    paddingHorizontal: 16,
+    borderRadius: 20,
   },
 
   addText: {
-    color: "#fff",
-    fontWeight: "600",
+    color: COLORS.white,
+    fontFamily: FONTS.sansBold,
   },
 
   filterRow: {
-    marginBottom: 12,
+    marginBottom: 8,
   },
 
   chip: {
     paddingHorizontal: 14,
     paddingVertical: 6,
-    borderRadius: 16,
-    backgroundColor: "#E5E7EB",
+    borderRadius: 18,
+    backgroundColor: "#EDEDED",
     marginRight: 8,
+  },
+
+  chipText: {
     fontSize: 13,
-    color: "#374151",
+    color: COLORS.textSecondary,
+    fontFamily: FONTS.sans,
   },
 
   activeChip: {
-    backgroundColor: "#2E7D32",
-    color: "#FFFFFF",
+    backgroundColor: COLORS.green,
+  },
+
+  activeChipText: {
+    color: COLORS.white,
   },
 });

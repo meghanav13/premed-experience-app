@@ -1,3 +1,4 @@
+import { COLORS, FONTS } from "@/constants/theme";
 import { StyleSheet, Text } from "react-native";
 
 export function Tag({ label }: { label: string }) {
@@ -6,12 +7,12 @@ export function Tag({ label }: { label: string }) {
 
 const styles = StyleSheet.create({
   tag: {
-    backgroundColor: "#E8F5E9",
-    color: "#2E7D32",
+    backgroundColor: "#EDF7F1",
+    color: COLORS.green,
     paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 12,
+    borderRadius: 14,
     fontSize: 12,
-    fontWeight: "500",
+    fontFamily: FONTS.sans,
   },
 });
