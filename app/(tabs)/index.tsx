@@ -30,20 +30,14 @@ export default function HomeScreen() {
     setTimeout(() => setRefreshing(false), 600);
   };
 
-  // Filter to current calendar month
-  const now = new Date();
-  const thisMonth = allExperiences.filter((e) => {
-    const d = new Date(e.date);
-    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-  });
-
-  const clinical = thisMonth
+  // All-time totals — cumulative hours are what matter for premed apps
+  const clinical = allExperiences
     .filter((e) => e.type === 'Clinical')
     .reduce((s, e) => s + e.hours, 0);
-  const shadowing = thisMonth
+  const shadowing = allExperiences
     .filter((e) => e.type === 'Shadowing')
     .reduce((s, e) => s + e.hours, 0);
-  const research = thisMonth
+  const research = allExperiences
     .filter((e) => e.type === 'Research')
     .reduce((s, e) => s + e.hours, 0);
 
@@ -74,7 +68,7 @@ export default function HomeScreen() {
         {/* THIS MONTH CARD */}
         <View style={styles.card}>
           <View style={styles.cardHeaderRow}>
-            <Text style={styles.sectionLabel}>THIS MONTH</Text>
+            <Text style={styles.sectionLabel}>ALL TIME</Text>
             <Pressable
               onPress={() => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
