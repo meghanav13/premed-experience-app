@@ -1,7 +1,10 @@
+import DateRangeFilter from '@/components/DateRangeFilter';
+import SearchBar from '@/components/SearchBar';
 import { Tag } from '@/components/Tag';
 import { COLORS, FONTS, SHADOWS } from '@/constants/theme';
 import { useExperiences } from '@/context/ExperiencesContext';
-import { Experience, ExperienceType, SkillTag } from '@/types/experience';
+import { useExperienceSearch } from '@/hooks/useExperienceSearch';
+import { ExperienceType, SkillTag } from '@/types/experience';
 import * as Haptics from 'expo-haptics';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
@@ -39,17 +42,26 @@ export default function EssaysScreen() {
   const [customPromptText, setCustomPromptText] = useState('');
   const [essayFilter, setEssayFilter] = useState<EssayFilter>('All');
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [searchText, setSearchText] = useState('');
+  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [endDate, setEndDate] = useState<Date | null>(null);
 
-  // Reset selection when tab loses focus
+  // Reset selection + search when tab loses focus
   useFocusEffect(
     useCallback(() => {
-      return () => setSelectedIds(new Set());
+      return () => {
+        setSelectedIds(new Set());
+        setSearchText('');
+        setStartDate(null);
+        setEndDate(null);
+      };
     }, []),
   );
 
   const filterOptions: EssayFilter[] = ['All', 'Starred', 'Clinical', 'Shadowing', 'Research'];
 
-  const filteredExps = useMemo(() => {
+  // Step 1: chip filter (Starred, Clinical, etc.)
+  const chipFiltered = useMemo(() => {
     switch (essayFilter) {
       case 'Starred':
         return allExperiences.filter((e) => e.isMeaningful);
@@ -62,11 +74,11 @@ export default function EssaysScreen() {
     }
   }, [allExperiences, essayFilter]);
 
-  const selectedExps = allExperiences.filter((e) => selectedIds.has(e.id));
+  // Step 2: search + date range on top of chip filter
+  const filteredExps = useExperienceSearch(chipFiltered, searchText, startDate, endDate);
 
-  const coveredSkills: SkillTag[] = [
-    ...new Set(selectedExps.flatMap((e) => e.skills)),
-  ] as SkillTag[];
+  const selectedExps = allExperiences.filter((e) => selectedIds.has(e.id));
+  const coveredSkills: SkillTag[] = [...new Set(selectedExps.flatMap((e) => e.skills))] as SkillTag[];
 
   const toggleSelect = (id: string) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -115,6 +127,7 @@ export default function EssaysScreen() {
   };
 
   const canGenerate = selectedIds.size > 0 && !!selectedPrompt;
+  const hasActiveFilter = searchText.length > 0 || startDate !== null || endDate !== null;
 
   return (
     <ScrollView
@@ -149,12 +162,7 @@ export default function EssaysScreen() {
                 setPromptDropdownOpen(false);
               }}
             >
-              <Text
-                style={[
-                  styles.dropdownItemText,
-                  selectedPrompt === p && styles.dropdownItemTextActive,
-                ]}
-              >
+              <Text style={[styles.dropdownItemText, selectedPrompt === p && styles.dropdownItemTextActive]}>
                 {p}
               </Text>
             </Pressable>
@@ -176,64 +184,95 @@ export default function EssaysScreen() {
       {/* SELECT EXPERIENCES */}
       <Text style={[styles.sectionLabel, { marginTop: 20 }]}>SELECT EXPERIENCES</Text>
 
-      {/* Filter chips */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.filterScroll}
-        contentContainerStyle={styles.filterContent}
-      >
-        {filterOptions.map((f) => (
+      {/* Search bar */}
+      <SearchBar
+        value={searchText}
+        onChangeText={setSearchText}
+        placeholder="Search by title, type, skill…"
+      />
+
+      {/* Filter row: date range + chips */}
+      <View style={styles.filterRow}>
+        <DateRangeFilter
+          startDate={startDate}
+          endDate={endDate}
+          onApply={(s, e) => { setStartDate(s); setEndDate(e); }}
+        />
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.filterContent}
+        >
+          {filterOptions.map((f) => (
+            <Pressable
+              key={f}
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                setEssayFilter(f);
+              }}
+              style={[styles.chip, essayFilter === f && styles.activeChip]}
+            >
+              <Text style={[styles.chipText, essayFilter === f && styles.activeChipText]}>
+                {f}
+              </Text>
+            </Pressable>
+          ))}
+        </ScrollView>
+      </View>
+
+      {/* Active filter summary */}
+      {hasActiveFilter && (
+        <View style={styles.filterSummaryRow}>
+          <Text style={styles.filterSummaryText}>
+            {filteredExps.length} result{filteredExps.length !== 1 ? 's' : ''}
+            {searchText ? ` for "${searchText}"` : ''}
+          </Text>
           <Pressable
-            key={f}
-            onPress={() => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              setEssayFilter(f);
-            }}
-            style={[styles.chip, essayFilter === f && styles.activeChip]}
+            onPress={() => { setSearchText(''); setStartDate(null); setEndDate(null); }}
+            hitSlop={8}
           >
-            <Text style={[styles.chipText, essayFilter === f && styles.activeChipText]}>
-              {f}
-            </Text>
+            <Text style={styles.clearAllText}>Clear</Text>
           </Pressable>
-        ))}
-      </ScrollView>
+        </View>
+      )}
 
       {/* Experience list with checkboxes */}
       <View style={styles.expList}>
-        {filteredExps.map((exp) => {
-          const checked = selectedIds.has(exp.id);
-          return (
-            <Pressable
-              key={exp.id}
-              style={[styles.expRow, checked && styles.expRowChecked]}
-              onPress={() => toggleSelect(exp.id)}
-            >
-              <View style={[styles.checkbox, checked && styles.checkboxChecked]}>
-                {checked && <Text style={styles.checkmark}>✓</Text>}
-              </View>
-              <View style={styles.expRowContent}>
-                <Text style={styles.expTitle}>{exp.title}</Text>
-                <Text style={styles.expSub}>
-                  {new Date(exp.date).toLocaleDateString('en-US', {
-                    month: 'short',
-                    year: 'numeric',
-                  })}{' '}
-                  • {exp.type} • {exp.hours} hrs
-                </Text>
-              </View>
-              {exp.isMeaningful && <Text style={styles.expStar}>⭐</Text>}
-            </Pressable>
-          );
-        })}
+        {filteredExps.length === 0 ? (
+          <Text style={styles.emptyText}>No experiences match your search.</Text>
+        ) : (
+          filteredExps.map((exp) => {
+            const checked = selectedIds.has(exp.id);
+            return (
+              <Pressable
+                key={exp.id}
+                style={[styles.expRow, checked && styles.expRowChecked]}
+                onPress={() => toggleSelect(exp.id)}
+              >
+                <View style={[styles.checkbox, checked && styles.checkboxChecked]}>
+                  {checked && <Text style={styles.checkmark}>✓</Text>}
+                </View>
+                <View style={styles.expRowContent}>
+                  <Text style={styles.expTitle}>{exp.title}</Text>
+                  <Text style={styles.expSub}>
+                    {new Date(exp.date).toLocaleDateString('en-US', {
+                      month: 'short',
+                      year: 'numeric',
+                    })}{' '}
+                    • {exp.type} • {exp.hours} hrs
+                  </Text>
+                </View>
+                {exp.isMeaningful && <Text style={styles.expStar}>⭐</Text>}
+              </Pressable>
+            );
+          })
+        )}
       </View>
 
       {/* SKILLS COVERED */}
       <Text style={[styles.sectionLabel, { marginTop: 20 }]}>SKILLS COVERED</Text>
       {coveredSkills.length === 0 ? (
-        <Text style={styles.skillsEmpty}>
-          Select experiences to see skills covered.
-        </Text>
+        <Text style={styles.skillsEmpty}>Select experiences to see skills covered.</Text>
       ) : (
         <View style={styles.skillsCloud}>
           {coveredSkills.map((skill) => (
@@ -324,12 +363,7 @@ export default function EssaysScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.cream },
   content: { paddingTop: 64, paddingHorizontal: 16, paddingBottom: 48 },
-  header: {
-    fontSize: 32,
-    fontFamily: FONTS.serif,
-    color: COLORS.green,
-    marginBottom: 20,
-  },
+  header: { fontSize: 32, fontFamily: FONTS.serif, color: COLORS.green, marginBottom: 20 },
   sectionLabel: {
     fontSize: 11,
     fontFamily: FONTS.sansBold,
@@ -355,10 +389,7 @@ const styles = StyleSheet.create({
     flex: 1,
     marginRight: 8,
   },
-  chevron: {
-    fontSize: 11,
-    color: COLORS.textSecondary,
-  },
+  chevron: { fontSize: 11, color: COLORS.textSecondary },
   dropdown: {
     backgroundColor: COLORS.white,
     borderRadius: 14,
@@ -373,19 +404,14 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
   },
-  dropdownItemActive: {
-    backgroundColor: COLORS.greenLight,
+  dropdownItemActive: { backgroundColor: COLORS.greenLight },
+  dropdownItemText: { fontFamily: FONTS.sans, fontSize: 14, color: COLORS.textPrimary },
+  dropdownItemTextActive: { fontFamily: FONTS.sansBold, color: COLORS.green },
+  filterRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
   },
-  dropdownItemText: {
-    fontFamily: FONTS.sans,
-    fontSize: 14,
-    color: COLORS.textPrimary,
-  },
-  dropdownItemTextActive: {
-    fontFamily: FONTS.sansBold,
-    color: COLORS.green,
-  },
-  filterScroll: { marginBottom: 12 },
   filterContent: { paddingRight: 16 },
   chip: {
     paddingHorizontal: 14,
@@ -399,7 +425,23 @@ const styles = StyleSheet.create({
   activeChip: { backgroundColor: COLORS.green, borderColor: COLORS.green },
   chipText: { fontSize: 13, color: COLORS.textSecondary, fontFamily: FONTS.sans },
   activeChipText: { color: COLORS.white, fontFamily: FONTS.sansBold },
+  filterSummaryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  filterSummaryText: { fontFamily: FONTS.sans, fontSize: 12, color: COLORS.textSecondary, flex: 1 },
+  clearAllText: { fontFamily: FONTS.sansBold, fontSize: 12, color: COLORS.green, marginLeft: 8 },
   expList: { gap: 8 },
+  emptyText: {
+    fontFamily: FONTS.sans,
+    fontSize: 14,
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+    paddingVertical: 20,
+    fontStyle: 'italic',
+  },
   expRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -409,10 +451,7 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: COLORS.border,
   },
-  expRowChecked: {
-    borderColor: COLORS.green,
-    backgroundColor: COLORS.greenLight,
-  },
+  expRowChecked: { borderColor: COLORS.green, backgroundColor: COLORS.greenLight },
   checkbox: {
     width: 22,
     height: 22,
@@ -423,18 +462,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  checkboxChecked: {
-    backgroundColor: COLORS.green,
-    borderColor: COLORS.green,
-  },
+  checkboxChecked: { backgroundColor: COLORS.green, borderColor: COLORS.green },
   checkmark: { color: COLORS.white, fontSize: 13, fontFamily: FONTS.sansBold },
   expRowContent: { flex: 1 },
-  expTitle: {
-    fontFamily: FONTS.sansBold,
-    fontSize: 14,
-    color: COLORS.textPrimary,
-    marginBottom: 3,
-  },
+  expTitle: { fontFamily: FONTS.sansBold, fontSize: 14, color: COLORS.textPrimary, marginBottom: 3 },
   expSub: { fontFamily: FONTS.sans, fontSize: 12, color: COLORS.textSecondary },
   expStar: { fontSize: 14, marginLeft: 8 },
   skillsEmpty: {
@@ -444,12 +475,7 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     marginBottom: 16,
   },
-  skillsCloud: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-    marginBottom: 20,
-  },
+  skillsCloud: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 20 },
   generateBtn: {
     backgroundColor: COLORS.green,
     padding: 16,
@@ -458,11 +484,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   generateBtnDisabled: { backgroundColor: '#A8C5B5', opacity: 0.7 },
-  generateBtnText: {
-    color: COLORS.white,
-    fontFamily: FONTS.sansBold,
-    fontSize: 16,
-  },
+  generateBtnText: { color: COLORS.white, fontFamily: FONTS.sansBold, fontSize: 16 },
   draftsSection: { marginTop: 28 },
   draftRow: {
     backgroundColor: COLORS.white,
@@ -473,17 +495,8 @@ const styles = StyleSheet.create({
     borderColor: COLORS.border,
     ...SHADOWS.card,
   },
-  draftPrompt: {
-    fontFamily: FONTS.sansBold,
-    fontSize: 14,
-    color: COLORS.textPrimary,
-    marginBottom: 4,
-  },
-  draftDate: {
-    fontFamily: FONTS.sans,
-    fontSize: 12,
-    color: COLORS.textSecondary,
-  },
+  draftPrompt: { fontFamily: FONTS.sansBold, fontSize: 14, color: COLORS.textPrimary, marginBottom: 4 },
+  draftDate: { fontFamily: FONTS.sans, fontSize: 12, color: COLORS.textSecondary },
   draftsHint: {
     fontFamily: FONTS.sans,
     fontSize: 11,
@@ -492,11 +505,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
     fontStyle: 'italic',
   },
-  modalContainer: {
-    flex: 1,
-    backgroundColor: COLORS.cream,
-    paddingTop: 20,
-  },
+  modalContainer: { flex: 1, backgroundColor: COLORS.cream, paddingTop: 20 },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -506,21 +515,9 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
   },
-  modalTitle: {
-    fontFamily: FONTS.sansBold,
-    fontSize: 16,
-    color: COLORS.textPrimary,
-  },
-  modalCancel: {
-    fontFamily: FONTS.sans,
-    fontSize: 15,
-    color: COLORS.textSecondary,
-  },
-  modalSave: {
-    fontFamily: FONTS.sansBold,
-    fontSize: 15,
-    color: COLORS.green,
-  },
+  modalTitle: { fontFamily: FONTS.sansBold, fontSize: 16, color: COLORS.textPrimary },
+  modalCancel: { fontFamily: FONTS.sans, fontSize: 15, color: COLORS.textSecondary },
+  modalSave: { fontFamily: FONTS.sansBold, fontSize: 15, color: COLORS.green },
   modalInput: {
     margin: 20,
     backgroundColor: COLORS.white,
