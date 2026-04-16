@@ -1,21 +1,27 @@
-import { Tabs } from "expo-router";
-import React from "react";
+import { Tabs } from 'expo-router';
+import React from 'react';
 
-import { HapticTab } from "@/components/haptic-tab";
-import { IconSymbol } from "@/components/ui/icon-symbol";
-import { COLORS } from "@/constants/theme";
+import { HapticTab } from '@/components/haptic-tab';
+import { COLORS, FONTS } from '@/constants/theme';
+import { CalendarBlank, House, PencilLine } from 'phosphor-react-native';
 
 export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
         tabBarActiveTintColor: COLORS.green,
-        tabBarInactiveTintColor: "#9CA3AF",
+        tabBarInactiveTintColor: '#9CA3AF',
         tabBarStyle: {
-          backgroundColor: COLORS.cream,
-          borderTopWidth: 0,
-          height: 70,
-          paddingBottom: 10,
+          backgroundColor: COLORS.white,
+          borderTopWidth: 1,
+          borderTopColor: '#F0EDE8',
+          height: 72,
+          paddingBottom: 12,
+          paddingTop: 8,
+        },
+        tabBarLabelStyle: {
+          fontFamily: FONTS.sans,
+          fontSize: 11,
         },
         headerShown: false,
         tabBarButton: HapticTab,
@@ -24,19 +30,25 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: "Home",
+          title: 'Home',
+          tabBarIcon: ({ color }) => <House size={24} color={color} weight="fill" />,
+        }}
+      />
+      <Tabs.Screen
+        name="timeline"
+        options={{
+          title: 'Timeline',
           tabBarIcon: ({ color }) => (
-            <IconSymbol size={26} name="house.fill" color={color} />
+            <CalendarBlank size={24} color={color} weight="fill" />
           ),
         }}
       />
-
       <Tabs.Screen
-        name="explore"
+        name="essays"
         options={{
-          title: "Explore",
+          title: 'Essays',
           tabBarIcon: ({ color }) => (
-            <IconSymbol size={26} name="paperplane.fill" color={color} />
+            <PencilLine size={24} color={color} weight="fill" />
           ),
         }}
       />

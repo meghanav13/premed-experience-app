@@ -1,31 +1,40 @@
-export type ExperienceType =
-  | "Clinical"
-  | "Shadowing"
-  | "Research"
-  | "Health Equity"
-  | "Leadership"
-  | "Soft Skills";
+export type ExperienceType = 'Clinical' | 'Shadowing' | 'Research';
+
+export type SkillTag =
+  | 'Health Equity'
+  | 'Leadership'
+  | 'Soft Skills'
+  | 'Technical Skills'
+  | 'Communication'
+  | 'Teamwork'
+  | 'Cultural Competency'
+  | 'Patient Care';
 
 export interface Experience {
   id: string;
-
-  // basic info
   title: string;
   type: ExperienceType;
-  date: string; // ISO string (e.g. "2025-03-02")
+  date: string; // ISO format e.g. "2025-03-02"
   hours: number;
-
-  // details
   location: string;
   supervisor: string;
+  whatHappened: string;
+  whyItMattered: string;
+  skills: SkillTag[];
+  isMeaningful: boolean;
+  createdAt: string;
+}
 
-  // tags (for chips)
-  tags: ExperienceType[];
+export interface CustomPrompt {
+  id: string;
+  text: string;
+  createdAt: string;
+}
 
-  // reflection (for essay builder)
-  description?: string; // what happened
-  impact?: string; // why it mattered
-
-  // features
-  isMeaningful?: boolean;
+export interface SavedDraft {
+  id: string;
+  prompt: string;
+  experienceIds: string[];
+  outline: string;
+  createdAt: string;
 }
