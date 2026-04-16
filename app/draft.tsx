@@ -15,8 +15,7 @@ import {
   View,
 } from 'react-native';
 
-// Try 2.5-flash first, fall back to 2.0-flash if unavailable
-const GEMINI_MODELS = ['gemini-2.5-flash', 'gemini-2.0-flash'];
+const CLAUDE_MODEL = 'claude-haiku-4-5';
 
 export default function DraftScreen() {
   const router = useRouter();
@@ -42,7 +41,7 @@ export default function DraftScreen() {
   const [error, setError] = useState('');
   const hasFetched = useRef(false);
 
-  const apiKey = process.env.EXPO_PUBLIC_GEMINI_API_KEY ?? '';
+  const apiKey = process.env.EXPO_PUBLIC_ANTHROPIC_API_KEY ?? '';
 
   useEffect(() => {
     if (isViewOnly || hasFetched.current || !prompt) return;
@@ -95,7 +94,7 @@ Keep it concrete and specific to the experiences provided. Don't invent details 
 
   const generateOutline = async () => {
     if (!apiKey || apiKey === 'your_key_here') {
-      setError('Add your Gemini API key to .env to generate drafts.');
+      setError('Add your Anthropic API key to .env to generate drafts.');
       return;
     }
 
@@ -103,58 +102,59 @@ Keep it concrete and specific to the experiences provided. Don't invent details 
     setError('');
 
     const body = JSON.stringify({
-      contents: [{ role: 'user', parts: [{ text: buildPromptText() }] }],
+      model: CLAUDE_MODEL,
+      max_tokens: 1500,
+      messages: [{ role: 'user', content: buildPromptText() }],
     });
 
-    // Try each model in order; retry once on 503 (overloaded) before moving on
+    // Retry once on 529 (overloaded) before giving up
     let lastError = '';
-    for (const model of GEMINI_MODELS) {
-      for (let attempt = 0; attempt < 2; attempt++) {
-        try {
-          if (attempt > 0) {
-            // Brief pause before retry
-            await new Promise((r) => setTimeout(r, 2000));
-          }
-          const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
-            {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body,
-            },
-          );
-
-          if (response.status === 503) {
-            // Model overloaded — retry or try next model
-            lastError = 'overloaded';
-            continue;
-          }
-
-          if (!response.ok) {
-            const errText = await response.text();
-            console.error('Gemini error:', errText);
-            lastError = `API error ${response.status}`;
-            break; // Non-transient error, skip retries for this model
-          }
-
-          const data = await response.json();
-          const text =
-            data?.candidates?.[0]?.content?.parts
-              ?.map((p: { text: string }) => p.text)
-              .join('') ?? 'No response received.';
-          setOutline(text);
-          setLoading(false);
-          return; // Success — done
-        } catch (err) {
-          console.error(err);
-          lastError = 'network';
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        if (attempt > 0) {
+          // Brief pause before retry
+          await new Promise((r) => setTimeout(r, 2000));
         }
+        const response = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': apiKey,
+            'anthropic-version': '2023-06-01',
+            'anthropic-dangerous-direct-browser-access': 'true',
+          },
+          body,
+        });
+
+        if (response.status === 529 || response.status === 503) {
+          // Overloaded — retry
+          lastError = 'overloaded';
+          continue;
+        }
+
+        if (!response.ok) {
+          const errText = await response.text();
+          console.error('Claude status:', response.status);
+          console.error('Claude body:', errText.slice(0, 500));
+          lastError = `API error ${response.status}: ${errText.slice(0, 200)}`;
+          break; // Non-transient, skip retry
+        }
+
+        const data = await response.json();
+        const text =
+          data?.content?.[0]?.text ?? 'No response received.';
+        setOutline(text);
+        setLoading(false);
+        return; // Success
+      } catch (err) {
+        console.error(err);
+        lastError = 'network';
       }
     }
 
-    // All models / retries failed
+    // All attempts failed
     if (lastError === 'overloaded') {
-      setError('Gemini is overloaded right now. Wait a moment and tap Retry.');
+      setError('Claude is overloaded right now. Wait a moment and tap Retry.');
     } else if (lastError === 'network') {
       setError('Network error. Check your connection and tap Retry.');
     } else {

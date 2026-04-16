@@ -21,9 +21,9 @@ export const COLORS = {
 };
 
 export const FONTS = {
-  serif: 'DMSerifDisplay-Regular',
-  sans: 'DMSans-Regular',
-  sansBold: 'DMSans-Bold',
+  serif: 'DMSerifDisplay_400Regular',
+  sans: 'DMSans_400Regular',
+  sansBold: 'DMSans_700Bold',
 };
 
 export const SHADOWS = {
