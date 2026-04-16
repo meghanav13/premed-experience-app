@@ -15,7 +15,8 @@ import {
   View,
 } from 'react-native';
 
-const GEMINI_MODEL = 'gemini-2.5-flash';
+// Try 2.5-flash first, fall back to 2.0-flash if unavailable
+const GEMINI_MODELS = ['gemini-2.5-flash', 'gemini-2.0-flash'];
 
 export default function DraftScreen() {
   const router = useRouter();
@@ -101,35 +102,65 @@ Keep it concrete and specific to the experiences provided. Don't invent details 
     setLoading(true);
     setError('');
 
-    try {
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ role: 'user', parts: [{ text: buildPromptText() }] }],
-          }),
-        },
-      );
+    const body = JSON.stringify({
+      contents: [{ role: 'user', parts: [{ text: buildPromptText() }] }],
+    });
 
-      if (!response.ok) {
-        const errText = await response.text();
-        console.error('Gemini error:', errText);
-        throw new Error(`API error ${response.status}`);
+    // Try each model in order; retry once on 503 (overloaded) before moving on
+    let lastError = '';
+    for (const model of GEMINI_MODELS) {
+      for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+          if (attempt > 0) {
+            // Brief pause before retry
+            await new Promise((r) => setTimeout(r, 2000));
+          }
+          const response = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body,
+            },
+          );
+
+          if (response.status === 503) {
+            // Model overloaded — retry or try next model
+            lastError = 'overloaded';
+            continue;
+          }
+
+          if (!response.ok) {
+            const errText = await response.text();
+            console.error('Gemini error:', errText);
+            lastError = `API error ${response.status}`;
+            break; // Non-transient error, skip retries for this model
+          }
+
+          const data = await response.json();
+          const text =
+            data?.candidates?.[0]?.content?.parts
+              ?.map((p: { text: string }) => p.text)
+              .join('') ?? 'No response received.';
+          setOutline(text);
+          setLoading(false);
+          return; // Success — done
+        } catch (err) {
+          console.error(err);
+          lastError = 'network';
+        }
       }
-
-      const data = await response.json();
-      const text =
-        data?.candidates?.[0]?.content?.parts?.map((p: { text: string }) => p.text).join('') ??
-        'No response received.';
-      setOutline(text);
-    } catch (err) {
-      console.error(err);
-      setError('Network error. Check your connection and try again.');
-    } finally {
-      setLoading(false);
     }
+
+    // All models / retries failed
+    if (lastError === 'overloaded') {
+      setError('Gemini is overloaded right now. Wait a moment and tap Retry.');
+    } else if (lastError === 'network') {
+      setError('Network error. Check your connection and tap Retry.');
+    } else {
+      setError(`Generation failed (${lastError}). Tap Retry.`);
+    }
+    setLoading(false);
   };
 
   const handleCopy = async () => {
