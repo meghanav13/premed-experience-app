@@ -95,17 +95,19 @@ export default function DateRangeFilter({ startDate, endDate, onApply }: Props) 
             </Pressable>
 
             {pickingField === 'start' && (
-              <DateTimePicker
-                value={draftStart ?? new Date()}
-                mode="date"
-                display={Platform.OS === 'ios' ? 'inline' : 'default'}
-                maximumDate={draftEnd ?? new Date()}
-                onChange={(_, date) => {
-                  if (date) setDraftStart(date);
-                  if (Platform.OS === 'android') setPickingField(null);
-                }}
-                style={styles.picker}
-              />
+              <View style={styles.pickerWrapper}>
+                <DateTimePicker
+                  value={draftStart ?? new Date()}
+                  mode="date"
+                  display={Platform.OS === 'ios' ? 'inline' : 'default'}
+                  themeVariant="dark"
+                  maximumDate={draftEnd ?? new Date()}
+                  onChange={(_, date) => {
+                    if (date) setDraftStart(date);
+                    if (Platform.OS === 'android') setPickingField(null);
+                  }}
+                />
+              </View>
             )}
 
             {/* End date row */}
@@ -121,18 +123,20 @@ export default function DateRangeFilter({ startDate, endDate, onApply }: Props) 
             </Pressable>
 
             {pickingField === 'end' && (
-              <DateTimePicker
-                value={draftEnd ?? new Date()}
-                mode="date"
-                display={Platform.OS === 'ios' ? 'inline' : 'default'}
-                minimumDate={draftStart ?? undefined}
-                maximumDate={new Date()}
-                onChange={(_, date) => {
-                  if (date) setDraftEnd(date);
-                  if (Platform.OS === 'android') setPickingField(null);
-                }}
-                style={styles.picker}
-              />
+              <View style={styles.pickerWrapper}>
+                <DateTimePicker
+                  value={draftEnd ?? new Date()}
+                  mode="date"
+                  display={Platform.OS === 'ios' ? 'inline' : 'default'}
+                  themeVariant="dark"
+                  minimumDate={draftStart ?? undefined}
+                  maximumDate={new Date()}
+                  onChange={(_, date) => {
+                    if (date) setDraftEnd(date);
+                    if (Platform.OS === 'android') setPickingField(null);
+                  }}
+                />
+              </View>
             )}
 
             {/* Active range summary */}
@@ -255,9 +259,11 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: COLORS.textSecondary,
   },
-  picker: {
+  pickerWrapper: {
+    backgroundColor: '#1C1C1E',
+    borderRadius: 16,
+    overflow: 'hidden',
     marginBottom: 12,
-    marginHorizontal: -4,
   },
   rangeSummary: {
     fontFamily: FONTS.sans,

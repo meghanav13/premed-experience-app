@@ -7,6 +7,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
   Alert,
+  KeyboardAvoidingView,
   Platform,
   Pressable,
   ScrollView,
@@ -119,6 +120,11 @@ export default function AddExperience() {
   });
 
   return (
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+    >
     <ScrollView
       style={styles.container}
       contentContainerStyle={styles.content}
@@ -165,16 +171,19 @@ export default function AddExperience() {
         <Text style={styles.inputText}>{formattedDate}</Text>
       </Pressable>
       {showDatePicker && (
-        <DateTimePicker
-          value={date}
-          mode="date"
-          display={Platform.OS === 'ios' ? 'inline' : 'default'}
-          onChange={(_, selected) => {
-            setShowDatePicker(Platform.OS === 'ios');
-            if (selected) setDate(selected);
-          }}
-          maximumDate={new Date()}
-        />
+        <View style={styles.pickerWrapper}>
+          <DateTimePicker
+            value={date}
+            mode="date"
+            display={Platform.OS === 'ios' ? 'inline' : 'default'}
+            themeVariant="dark"
+            onChange={(_, selected) => {
+              setShowDatePicker(Platform.OS === 'ios');
+              if (selected) setDate(selected);
+            }}
+            maximumDate={new Date()}
+          />
+        </View>
       )}
 
       {/* HOURS */}
@@ -280,6 +289,7 @@ export default function AddExperience() {
         </Text>
       </Pressable>
     </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -375,6 +385,12 @@ const styles = StyleSheet.create({
   },
   multiline: {
     minHeight: 90,
+  },
+  pickerWrapper: {
+    backgroundColor: '#1C1C1E',
+    borderRadius: 16,
+    overflow: 'hidden',
+    marginBottom: 16,
   },
   skillsGrid: {
     flexDirection: 'row',
