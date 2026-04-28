@@ -48,4 +48,4 @@ Get a key at [Anthropic Console](https://console.anthropic.com/).
 
 ## AI Attribution
 
-Claude Code was used to assist with parts of this project, including boilerplate generation, sample data, and debugging. Core design decisions, screen architecture, and feature planning were done by hand.
+Claude Code was used to assist with parts of this project, including boilerplate generation, sample data, and debugging.
