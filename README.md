@@ -7,7 +7,7 @@ A React Native / Expo app for pre-medical students to track clinical, shadowing,
 - **Home** — Monthly progress bars (Clinical / Shadowing / Research), meaningful highlights, draft-in-progress banner
 - **Timeline** — Filterable, month-grouped experience list with star toggle and delete; experience detail bottom sheet with edit support
 - **Add / Edit Experience** — Type selector, date picker, multi-select skill tags, reflection fields
-- **Essay Builder** — Prompt selector (5 built-in + custom prompts), experience checkbox picker, skills-covered cloud, Gemini-powered outline generation
+- **Essay Builder** — Prompt selector (5 built-in + custom prompts), experience checkbox picker, skills-covered cloud, Claude-powered outline generation
 - **Draft Viewer** — Copy to clipboard or save drafts; view past drafts from Essays tab
 
 ## Setup
@@ -17,7 +17,7 @@ git clone <repo-url>
 cd premed-experience-app
 npm install
 
-# Add your Gemini API key
+# Add your Claude API key
 cp .env.example .env
 # Edit .env and replace `your_key_here` with your actual key
 
@@ -30,9 +30,9 @@ Open in the Expo Go app or an iOS simulator.
 
 | Variable | Purpose |
 |---|---|
-| `EXPO_PUBLIC_GEMINI_API_KEY` | Gemini 2.5 Flash API key for essay outline generation |
+| `EXPO_PUBLIC_ANTHROPIC_API_KEY` | Claude API key for essay outline generation |
 
-Get a free key at [Google AI Studio](https://aistudio.google.com/).
+Get a key at [Anthropic Console](https://console.anthropic.com/).
 
 ## Tech Stack
 
@@ -45,3 +45,7 @@ Get a free key at [Google AI Studio](https://aistudio.google.com/).
 - **expo-clipboard** — copy outline to clipboard
 - **@react-native-community/datetimepicker** — date picker in Add Experience
 - **DM Serif Display + DM Sans** — typography
+
+## AI Attribution
+
+Claude Code was used to assist with parts of this project, including boilerplate generation, sample data, and debugging. Core design decisions, screen architecture, and feature planning were done by hand.
